@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Access Patterns Heatmap</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 4px solid var(--secondary-color);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .heatmap-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            width: 100%;
+            max-width: 1000px;
+        }
+        
+        .heatmap-labels {
+            display: grid;
+            grid-template-columns: 100px repeat(10, 1fr);
+            gap: 2px;
+            width: 100%;
+            max-width: 1100px;
+            margin-bottom: 5px;
+        }
+        
+        .heatmap-row {
+            display: grid;
+            grid-template-columns: 100px repeat(10, 1fr);
+            gap: 2px;
+            width: 100%;
+            max-width: 1100px;
+        }
+        
+        .heatmap-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0px 0px 2px rgba(0, 0, 0, 0.7);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .heatmap-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        
+        .heatmap-label {
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .legend-gradient {
+            width: 400px;
+            height: 20px;
+            margin: 0 15px;
+            background: linear-gradient(to right, 
+                #3a0074, #3a0092, #3c00b0, #4400cc, 
+                #4c00d4, #4f00dc, #5200e3, #5900eb, 
+                #5a20ed, #5c42ef, #5d60f1, #617df3, 
+                #6598f5, #6bb1f6, #72c7f7, #7ddbf8, 
+                #8eeef9, #a0fffa, #bfff9c, #dfff74, 
+                #ffff00);
+            border-radius: 4px;
+        }
+        
+        .legend-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .user-label {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-weight: 500;
+        }
+
+        .ip-label {
+            font-weight: 500;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #777;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .insight-box {
+            background-color: #f1f8fe;
+            border-left: 4px solid var(--secondary-color);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .insight-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .heatmap-labels, .heatmap-row {
+                grid-template-columns: 80px repeat(10, 1fr);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .heatmap-cell {
+                font-size: 12px;
+            }
+            
+            .heatmap-label {
+                font-size: 10px;
+                padding: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <div class="logo">SecurityDashboard™</div>
+                    <h1>USER ACCESS PATTERNS</h1>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                User Access Patterns Heatmap (Top 10 Users & Destinations)
+            </div>
+            <div class="card-body">
+                <div class="heatmap-container">
+                    <div class="heatmap-labels">
+                        <div class="heatmap-label" style="visibility: hidden;">User ID</div>
+                        <div class="heatmap-label ip-label">10.0.0.1</div>
+                        <div class="heatmap-label ip-label">10.0.0.10</div>
+                        <div class="heatmap-label ip-label">10.0.0.13</div>
+                        <div class="heatmap-label ip-label">10.0.0.15</div>
+                        <div class="heatmap-label ip-label">10.0.0.19</div>
+                        <div class="heatmap-label ip-label">10.0.0.20</div>
+                        <div class="heatmap-label ip-label">10.0.0.6</div>
+                        <div class="heatmap-label ip-label">10.0.0.7</div>
+                        <div class="heatmap-label ip-label">10.0.0.8</div>
+                        <div class="heatmap-label ip-label">10.0.0.9</div>
+                    </div>
+                    
+                    <!-- Row 1: user_1 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_1</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #bfff9c;">8</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                    </div>
+                    
+                    <!-- Row 2: user_19 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_19</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #72c7f7;">7</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #3a0074;">1</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                    </div>
+                    
+                    <!-- Row 3: user_25 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_25</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #3a0074;">1</div>
+                        <div class="heatmap-cell" style="background-color: #72c7f7;">7</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #3a0074;">1</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                    </div>
+                    
+                    <!-- Row 4: user_28 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_28</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #72c7f7;">7</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                    </div>
+                    
+                    <!-- Row 5: user_32 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_32</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #72c7f7;">7</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                    </div>
+                    
+                    <!-- Row 6: user_37 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_37</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #72c7f7;">7</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #72c7f7;">7</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                    </div>
+                    
+                    <!-- Row 7: user_40 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_40</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #bfff9c;">8</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #3a0074;">1</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                    </div>
+                    
+                    <!-- Row 8: user_47 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_47</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #ffff00;">9</div>
+                    </div>
+                    
+                    <!-- Row 9: user_50 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_50</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #ffff00;">9</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #72c7f7;">7</div>
+                    </div>
+                    
+                    <!-- Row 10: user_9 -->
+                    <div class="heatmap-row">
+                        <div class="heatmap-label user-label">user_9</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #5d60f1;">4</div>
+                        <div class="heatmap-cell" style="background-color: #617df3;">5</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #6598f5;">6</div>
+                        <div class="heatmap-cell" style="background-color: #3c00b0;">2</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                        <div class="heatmap-cell" style="background-color: #4400cc;">3</div>
+                    </div>
+                </div>
+                
+                <div class="heatmap-legend">
+                    <div class="legend-label">Low (1)</div>
+                    <div class="legend-gradient"></div>
+                    <div class="legend-label">High (9)</div>
+                </div>
+
+                <div class="insight-box">
+                    <div class="insight-title">Key Insights</div>
+                    <ul>
+                        <li>Notable hotspots: user_50 accessing 10.0.0.15 (9 connections) and user_47 accessing 10.0.0.9 (9 connections)</li>
+                        <li>User_40 shows unusual access pattern with high activity on 10.0.0.13 (8) but very low activity on 10.0.0.19 (1)</li>
+                        <li>10.0.0.15 appears to be a high-traffic destination for several users</li>
+                        <li>Most users maintain moderate access levels (4-6) across destinations</li>
+                        <li>User_19 and user_25 show the most variable access patterns across destinations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            &copy; 2025 Token-Based Security System - Generated by SecurityDashboard™
+        </div>
+    </div>
+</body>
+</html>

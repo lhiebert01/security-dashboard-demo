@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token-Based Security System - Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --success-color: #2ecc71;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 4px solid var(--secondary-color);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .timestamp {
+            font-size: 14px;
+            text-align: right;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+            margin-top: 30px;
+            font-size: 22px;
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 10px 0;
+            color: var(--secondary-color);
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #777;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background-color: #f1f1f1;
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .alert {
+            border-left: 4px solid;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        
+        .alert-medium {
+            border-left-color: var(--warning-color);
+        }
+        
+        .alert-high {
+            border-left-color: var(--danger-color);
+        }
+        
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .alert-body {
+            margin: 10px 0;
+        }
+        
+        .alert-severity {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .severity-medium {
+            background-color: var(--warning-color);
+        }
+        
+        .severity-high {
+            background-color: var(--danger-color);
+        }
+        
+        .recommendations {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .recommendations li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .recommendations li:before {
+            content: "!";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--warning-color);
+            color: white;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            padding: 20px;
+            font-size: 14px;
+            color: #777;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        @media (max-width: 768px) {
+            .stat-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Progress bars */
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 8px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        
+        .progress-fill-success {
+            background-color: var(--success-color);
+        }
+        
+        .progress-fill-warning {
+            background-color: var(--warning-color);
+        }
+        
+        .progress-fill-danger {
+            background-color: var(--danger-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <div class="logo">SecurityDashboard™</div>
+                    <h1>TOKEN-BASED SECURITY SYSTEM</h1>
+                </div>
+                <div class="timestamp">
+                    <div>Report Generated: 2025-03-04 02:24:45</div>
+                    <div>Analysis Period: 2025-03-03 02:25:05 to 2025-03-04 02:24:39</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                Executive Summary
+            </div>
+            <div class="card-body">
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Connections Analyzed</div>
+                        <div class="stat-value">5,050</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Valid Token Rate</div>
+                        <div class="stat-value">68.4%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-fill-warning" style="width: 68.4%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Connection Ignore Rate</div>
+                        <div class="stat-value">31.6%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-fill-warning" style="width: 31.6%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Access Denied Rate</div>
+                        <div class="stat-value">69.4%</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-fill-danger" style="width: 69.4%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Security Anomalies</div>
+                        <div class="stat-value">82</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Identity Statistics
+            </div>
+            <div class="card-body">
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Active Users</div>
+                        <div class="stat-value">50</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Source IP Addresses</div>
+                        <div class="stat-value">202</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Destination IP Addresses</div>
+                        <div class="stat-value">20</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Top Users by Activity
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Connections</th>
+                                <th>Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>user_19</td>
+                                <td>88</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 100%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>user_28</td>
+                                <td>86</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 97.7%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>user_40</td>
+                                <td>86</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 97.7%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>user_37</td>
+                                <td>84</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 95.5%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>user_9</td>
+                                <td>81</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 92.0%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Top Destinations
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Destination IP</th>
+                                <th>Connections</th>
+                                <th>Distribution</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>10.0.0.9</td>
+                                <td>277</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 100%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>10.0.0.13</td>
+                                <td>271</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 97.8%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>10.0.0.2</td>
+                                <td>267</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 96.4%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>10.0.0.1</td>
+                                <td>265</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 95.7%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>10.0.0.6</td>
+                                <td>265</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill progress-fill-success" style="width: 95.7%"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Security Anomalies
+            </div>
+            <div class="card-body">
+                <div class="alert alert-medium">
+                    <div class="alert-title">
+                        <span>Unusual Source IP - user_41</span>
+                        <span class="alert-severity severity-medium">Medium</span>
+                    </div>
+                    <div class="alert-body">
+                        <strong>Source:</strong> 192.168.0.85<br>
+                        <strong>Destination:</strong> 10.0.0.9, 10.0.0.5, 10.0.0.8<br>
+                        <strong>Details:</strong> User connecting from unusual source IP (3 connections)
+                    </div>
+                </div>
+                
+                <div class="alert alert-medium">
+                    <div class="alert-title">
+                        <span>Unusual Source IP - user_17</span>
+                        <span class="alert-severity severity-medium">Medium</span>
+                    </div>
+                    <div class="alert-body">
+                        <strong>Source:</strong> 192.168.0.82<br>
+                        <strong>Destination:</strong> 10.0.0.9, 10.0.0.6, 10.0.0.12<br>
+                        <strong>Details:</strong> User connecting from unusual source IP (3 connections)
+                    </div>
+                </div>
+                
+                <div class="alert alert-medium">
+                    <div class="alert-title">
+                        <span>Unusual Source IP - user_25</span>
+                        <span class="alert-severity severity-medium">Medium</span>
+                    </div>
+                    <div class="alert-body">
+                        <strong>Source:</strong> 192.168.0.89<br>
+                        <strong>Destination:</strong> 10.0.0.10, 10.0.0.4, 10.0.0.9<br>
+                        <strong>Details:</strong> User connecting from unusual source IP (3 connections)
+                    </div>
+                </div>
+                
+                <div class="alert alert-medium">
+                    <div class="alert-title">
+                        <span>Unusual Source IP - user_27</span>
+                        <span class="alert-severity severity-medium">Medium</span>
+                    </div>
+                    <div class="alert-body">
+                        <strong>Source:</strong> 192.168.0.78<br>
+                        <strong>Destination:</strong> 10.0.0.7, 10.0.0.18, 10.0.0.17<br>
+                        <strong>Details:</strong> User connecting from unusual source IP (3 connections)
+                    </div>
+                </div>
+                
+                <div class="alert alert-medium">
+                    <div class="alert-title">
+                        <span>Unusual Source IP - user_48</span>
+                        <span class="alert-severity severity-medium">Medium</span>
+                    </div>
+                    <div class="alert-body">
+                        <strong>Source:</strong> 192.168.0.15<br>
+                        <strong>Destination:</strong> 10.0.0.7, 10.0.0.2, 10.0.0.8<br>
+                        <strong>Details:</strong> User connecting from unusual source IP (3 connections)
+                    </div>
+                </div>
+                
+                <a href="#" style="display: block; text-align: center; margin: 20px 0; color: var(--secondary-color);">View All 82 Anomalies</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                Recommendations
+            </div>
+            <div class="card-body">
+                <ul class="recommendations">
+                    <li>Review access control policies as denied rate is high (>10%)</li>
+                    <li>Investigate low token validation rate (<70%)</li>
+                    <li>Investigate 82 detected security anomalies</li>
+                    <li>Monitor 201 sources attempting connections without valid tokens</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer">
+            &copy; 2025 Token-Based Security System - Generated by SecurityDashboard™
+        </div>
+    </div>
+</body>
+</html>
