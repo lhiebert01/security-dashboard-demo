@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: security-dashboard-demo
+    repo: https://github.com/lhiebert01/security-dashboard-demo.git
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py # Replace with your actual start command
